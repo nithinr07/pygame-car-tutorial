@@ -67,8 +67,9 @@ class Game:
     def run(self, neuropy):
         current_dir = os.path.dirname(os.path.abspath(__file__))
         image_path = os.path.join(current_dir, "car.png")
+        background_path = os.path.join(current_dir, "background.png")
         car_image = pygame.image.load(image_path)
-        background = pygame.image.load('background.png').convert()
+        background = pygame.image.load(background_path).convert()
         ppu = 16
         # Edges are (0,0); (self.width/ppu, 0); (0, self.height/ppu); (self.width/ppu, self.height/ppu)
         car = Car(0, self.height/(2*ppu))
@@ -156,7 +157,7 @@ class Game:
             self.screen.fill((0, 0, 0))
             rotated = pygame.transform.rotate(car_image, car.angle)
             rect = rotated.get_rect()
-            self.screen.bilt(background, (0, 0))
+            self.screen.blit(background, (0, 0))
             self.screen.blit(rotated, car.position * ppu - (rect.width / 2, rect.height / 2))
             self.screen.blit(attention_text, (self.width-190, 2))
             # self.screen.blit(acceleration_text, (self.width-190, 20))
