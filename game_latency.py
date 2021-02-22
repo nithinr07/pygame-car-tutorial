@@ -85,7 +85,7 @@ class Game:
         # print(threshold)
         pos = Vector2(0.0, 0.0)
         while not self.exit:
-            # print(round(timer()-global_start, 2)%2)
+            print(round(timer()-global_start, 2)%delay)
             self.popupmsg("Wear headset properly")
             attention = (neuropy.attention)
             # attention = random.random() * (100)
@@ -143,17 +143,17 @@ class Game:
                 counting_string = txt + "nil" 
             else:
                 counting_string = txt + str(prev_time)
-            if(pos.x >= self.width/ppu):
+            if(car.position.x >= self.width/ppu):
                 end = timer()
                 time_seconds = end - start
                 prev_time = time_seconds
                 counting_string = txt + str(time_seconds)
-                pos.x = 0
-                pos.y = self.height/(2*ppu)
+                car.position.x = 0
+                car.position.y = self.height/(2*ppu)
                 car.velocity.x = 0
                 start = timer()
-            if(pos.x <= 0):
-                pos.x = 0
+            if(car.position.x <= 0):
+                car.position.x = 0
                 if(car.velocity.x <= 0):
                     car.velocity.x = 0
 
@@ -176,8 +176,8 @@ class Game:
                 self.screen.blit(rotated, car.position * ppu - (rect.width / 2, rect.height / 2))
                 pos = copy.deepcopy(car.position)
             else:
-                print(pos.x, end=" ")
-                print(car.position.x)
+                # print(pos.x, end=" ")
+                # print(car.position.x)
                 self.screen.blit(rotated, pos * ppu - (rect.width / 2, rect.height / 2))
             pygame.display.flip()
             self.clock.tick(self.ticks)
