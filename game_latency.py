@@ -9,6 +9,7 @@ import random
 import tkinter as tk
 from tkinter import ttk
 from numpy import random
+import copy
 
 class Car:
     def __init__(self, x, y, angle=0.0, length=4, max_steering=30, max_acceleration=1000.0):
@@ -77,9 +78,14 @@ class Game:
         txt_acceleration = "Acceleration: "
         txt_velocity = "Velocity: "
         start = timer()
-        threshold = random.normal(loc=0, scale=5)
-        print(threshold)
+        global_start = timer()
+        # threshold = random.normal(loc=0, scale=5)
+        threshold = 0
+        delay = 0.25
+        # print(threshold)
+        pos = Vector2(0.0, 0.0)
         while not self.exit:
+            # print(round(timer()-global_start, 2)%2)
             self.popupmsg("Wear headset properly")
             attention = (neuropy.attention)
             # attention = random.random() * (100)
@@ -132,22 +138,22 @@ class Game:
             # Logic
             car.update(dt)
             # print(start-timer())
-            
+            # print(pos.x)
             if(prev_time == 0):
                 counting_string = txt + "nil" 
             else:
                 counting_string = txt + str(prev_time)
-            if(car.position.x >= self.width/ppu):
+            if(pos.x >= self.width/ppu):
                 end = timer()
                 time_seconds = end - start
                 prev_time = time_seconds
                 counting_string = txt + str(time_seconds)
-                car.position.x = 0
-                car.position.y = self.height/(2*ppu)
+                pos.x = 0
+                pos.y = self.height/(2*ppu)
                 car.velocity.x = 0
                 start = timer()
-            if(car.position.x <= 0):
-                car.position.x = 0
+            if(pos.x <= 0):
+                pos.x = 0
                 if(car.velocity.x <= 0):
                     car.velocity.x = 0
 
@@ -160,12 +166,19 @@ class Game:
             self.screen.fill((0, 0, 0))
             rotated = pygame.transform.rotate(car_image, car.angle)
             rect = rotated.get_rect()
-            self.screen.blit(rotated, car.position * ppu - (rect.width / 2, rect.height / 2))
+            
             self.screen.blit(attention_text, (self.width-190, 2))
             # self.screen.blit(acceleration_text, (self.width-190, 20))
             self.screen.blit(velocity_text, (self.width-190, 20))
             self.screen.blit(counting_text, (2, 2))
-            
+            if((round(timer()-global_start, 2)%delay)==0):
+                print("yay")
+                self.screen.blit(rotated, car.position * ppu - (rect.width / 2, rect.height / 2))
+                pos = copy.deepcopy(car.position)
+            else:
+                print(pos.x, end=" ")
+                print(car.position.x)
+                self.screen.blit(rotated, pos * ppu - (rect.width / 2, rect.height / 2))
             pygame.display.flip()
             self.clock.tick(self.ticks)
         pygame.quit()
