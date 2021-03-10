@@ -43,8 +43,8 @@ class Game:
     def __init__(self):
         pygame.init()
         pygame.display.set_caption("Car tutorial")
-        self.width = 1920
-        self.height = 1080
+        self.width = 800
+        self.height = 447
         self.screen = pygame.display.set_mode((self.width, self.height))
         self.font = pygame.font.SysFont(None, 32)
         self.clock = pygame.time.Clock()
@@ -66,13 +66,16 @@ class Game:
 
     def run(self, neuropy):
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        image_path = os.path.join(current_dir, "car.png")
-        background_path = os.path.join(current_dir, "background.png")
+        image_path = os.path.join(current_dir, "spaceship.png")
+        background_path = os.path.join(current_dir, "stars.png")
         car_image = pygame.image.load(image_path)
+        # scale = Vector2(car_image.getwidth()/self.width, car_image.get_height()/self.height)
+        car_image = pygame.transform.scale(car_image, (100,75))
         background = pygame.image.load(background_path).convert()
         ppu = 16
         # Edges are (0,0); (self.width/ppu, 0); (0, self.height/ppu); (self.width/ppu, self.height/ppu)
-        car = Car(0, self.height/(2*ppu))
+        # car = Car(0, self.height/(2*ppu))
+        car = Car(0, 0)
         prev_time = 0;
         txt = "End to End Time: "
         txt_attention = "Attention:   "
@@ -93,41 +96,10 @@ class Game:
             # User input
             # pressed = pygame.key.get_pressed()
             # car.acceleration = ((attention - 50) / 10 )
-            car.velocity.x = ((attention - 50) / 10 ) + random.normal(loc=0, scale=5)
+            car.velocity.x = (attention - 50) / 10  
             # + random.normal(loc=0, scale=5)
             # print(car.acceleration)
             print(car.velocity.x)
-            # if pressed[pygame.K_UP]:
-            #     if car.velocity.x < 0:
-            #         car.acceleration = car.brake_deceleration
-            #     else:
-            #         car.acceleration += attention * dt
-            # elif pressed[pygame.K_DOWN]:
-            #     if car.velocity.x > 0:
-            #         car.acceleration = -car.brake_deceleration
-            #     else:
-            #         car.acceleration -= 1 * dt
-            # elif pressed[pygame.K_SPACE]:
-            #     if abs(car.velocity.x) > dt * car.brake_deceleration:
-            #         car.acceleration = -copysign(car.brake_deceleration, car.velocity.x)
-            #     else:
-            #         car.acceleration = -car.velocity.x / dt
-            # else:
-            #     if abs(car.velocity.x) > dt * car.free_deceleration:
-            #         car.acceleration = -copysign(car.free_deceleration, car.velocity.x)
-            #     else:
-            #         if dt != 0:
-            #             car.acceleration = -car.velocity.x / dt
-            # car.acceleration = max(-car.max_acceleration, min(car.acceleration, car.max_acceleration))
-
-            # if pressed[pygame.K_RIGHT]:
-            #     car.steering -= 30 * dt
-            # elif pressed[pygame.K_LEFT]:
-            #     car.steering += 30 * dt
-            # else:
-            #     car.steering = 0
-            # car.steering = max(-car.max_steering, min(car.steering, car.max_steering))
-
             # Logic
             car.update(dt)
             # print(start-timer())
@@ -142,7 +114,8 @@ class Game:
                 prev_time = time_seconds
                 counting_string = txt + str(time_seconds)
                 car.position.x = 0
-                car.position.y = self.height/(2*ppu)
+                # car.position.y = self.height/(2*ppu)
+                car.position.y = 0
                 car.velocity.x = 0
                 start = timer()
             if(car.position.x <= 0):
@@ -157,8 +130,8 @@ class Game:
             self.screen.fill((0, 0, 0))
             rotated = pygame.transform.rotate(car_image, car.angle)
             rect = rotated.get_rect()
-            self.screen.blit(background, (0, 0))
-            self.screen.blit(rotated, car.position * ppu - (rect.width / 2, rect.height / 2))
+            self.screen.blit(background, -car.position * ppu - (rect.width / 2, rect.height / 2))
+            self.screen.blit(rotated, (self.width/(0.3*ppu), self.height/(0.3*ppu)))
             self.screen.blit(attention_text, (self.width-190, 2))
             # self.screen.blit(acceleration_text, (self.width-190, 20))
             self.screen.blit(counting_text, (2, 2))
