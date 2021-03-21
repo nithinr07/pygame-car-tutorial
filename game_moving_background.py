@@ -9,6 +9,7 @@ import random
 import tkinter as tk
 from tkinter import ttk
 from numpy import random
+import arcade
 
 class Background():
       def __init__(self):
@@ -91,9 +92,10 @@ class Game:
         image_path = os.path.join(current_dir, "spaceship.png")
         # background_path = os.path.join(current_dir, "stars.png")
         car_image = pygame.image.load(image_path)
+        # car_image = arcade.Sprite(image_path, (100,75))
         bg = Background()
         # scale = Vector2(car_image.getwidth()/self.width, car_image.get_height()/self.height)
-        car_image = pygame.transform.scale(car_image, (100,75))
+        # car_image = pygame.transform.scale(car_image, (100,75))
         # background = pygame.image.load(background_path).convert()
         ppu = 16
         # Edges are (0,0); (self.width/ppu, 0); (0, self.height/ppu); (self.width/ppu, self.height/ppu)
@@ -152,11 +154,11 @@ class Game:
             attention_text = self.font.render(str(txt_attention + str(attention)), 1, (255,255,255))
             # acceleration_text = self.font.render(str(txt_acceleration + str(car.acceleration)), 1, (255,255,255))
             self.screen.fill((0, 0, 0))
-            rotated = pygame.transform.rotate(car_image, car.angle)
-            rect = rotated.get_rect()
+            # rotated = pygame.transform.rotate(car_image, car.angle)
+            # rect = rotated.get_rect()
             # self.screen.blit(background, -car.position * ppu - (rect.width / 2, rect.height / 2))
             bg.render(self.screen)
-            self.screen.blit(rotated, (self.width/(0.3*ppu), self.height/(0.3*ppu)))
+            self.screen.blit(car_image, (self.width/(0.3*ppu), self.height/(0.3*ppu)))
             self.screen.blit(attention_text, (self.width-190, 2))
             # self.screen.blit(acceleration_text, (self.width-190, 20))
             # self.screen.blit(counting_text, (2, 2))

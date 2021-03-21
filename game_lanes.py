@@ -10,10 +10,34 @@ import tkinter as tk
 from tkinter import ttk
 from numpy import random
 
+class Background():
+      def __init__(self):
+            self.bgimage = pygame.image.load('stars.png')
+            self.rectBGimg = self.bgimage.get_rect()
+ 
+            self.bgY1 = 0
+            self.bgX1 = 0
+ 
+            self.bgY2 = 0
+            self.bgX2 = self.rectBGimg.width
+
+            self.moving_speed = 2
+          
+      def update(self):
+        self.bgX1 -= self.moving_speed
+        self.bgX2 -= self.moving_speed
+        if self.bgX1 <= -self.rectBGimg.width:
+            self.bgX1 = self.rectBGimg.width
+        if self.bgX2 <= -self.rectBGimg.width:
+            self.bgX2 = self.rectBGimg.width
+             
+      def render(self, DISPLAYSURF):
+         DISPLAYSURF.blit(self.bgimage, (self.bgX1, self.bgY1))
+         DISPLAYSURF.blit(self.bgimage, (self.bgX2, self.bgY2))
 class Car:
     def __init__(self, x, y, angle=0.0, length=4, max_steering=30, max_acceleration=1000.0):
         self.position = Vector2(x, y)
-        self.velocity = Vector2(2.0, 0.0)
+        self.velocity = Vector2(0.0, 0.0)
         self.angle = angle
         self.length = length
         self.max_acceleration = max_acceleration
@@ -22,13 +46,11 @@ class Car:
         self.brake_deceleration = 10
         self.free_deceleration = 2
 
-        self.acceleration = 0.0
+        self.acceleration = -6.0
         self.steering = 0.0
 
     def update(self, dt):
-        # self.velocity += (self.acceleration * dt, 0)
-        # self.velocity.x = max(-self.max_velocity, min(self.velocity.x, self.max_velocity))
-
+        self.velocity += (0, self.acceleration * dt)
         if self.steering:
             turning_radius = self.length / sin(radians(self.steering))
             angular_velocity = self.velocity.x / turning_radius
@@ -38,6 +60,43 @@ class Car:
         self.position += self.velocity.rotate(-self.angle) * dt
         self.angle += degrees(angular_velocity) * dt
 
+class Coin:
+    def __init__(self, x, y):
+        self.position = Vector2(x, y)
+        self.collision = False
+        self.coin_img = pygame.image.load("coin.png")
+        self.coin_img = pygame.transform.scale(self.coin_img, (25, 25))
+        self.moving_speed = 2
+        self.offset = (6 * 25) + (5 * 20)
+
+    def update(self, car_position):
+        self.position.x -= self.moving_speed
+        if(car_position.x + self.offset >= self.position.x and car_position.x + self.offset <= self.position.x + 25 and car_position.y >= self.position.y and car_position.y <= self.position.y + 25):
+            self.collision = True
+    
+    def render(self, DISPLAYSURF):
+        if(self.collision == False):
+            DISPLAYSURF.blit(self.coin_img, self.position)
+
+class CoinList:
+    def __init__(self, num_coins=200):
+        self.num_coins = num_coins
+        self.coins = []
+
+    def get_position(self):
+        return(self.coins[25].position)
+
+    def create_list(self):
+        for i in range(self.num_coins):
+            self.coins.append(Coin((i * 20), -5))
+    
+    def update_list(self, car_position):
+        for coin in self.coins:
+            coin.update(car_position)
+    
+    def render(self, DISPLAYSURF):
+        for coin in self.coins:
+            coin.render(DISPLAYSURF)
 
 class Game:
     def __init__(self):
@@ -51,38 +110,22 @@ class Game:
         self.ticks = 60
         self.exit = False
 
-    def popupmsg(self, msg):
-        while(neuropy.poorSignal != 0):
-            popup = tk.Tk()
-            popup.wm_title("!")
-            label = ttk.Label(popup, text=msg)
-            label.pack(side="top", fill="x", pady=10)
-            if(neuropy.poorSignal == 0) :
-                popup.destroy
-                break
-            # B1 = ttk.Button(popup, text="Okay", command = popup.destroy)
-            # B1.pack()
-            # popup.mainloop()
-
     def run(self, neuropy):
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        image_path = os.path.join(current_dir, "spaceship.png")
-        background_path = os.path.join(current_dir, "stars.png")
-        car_image = pygame.image.load(image_path)
-        # scale = Vector2(car_image.getwidth()/self.width, car_image.get_height()/self.height)
+        car_image_path = os.path.join(current_dir, "spaceship.png")
+        car_image = pygame.image.load(car_image_path)
+        bg = Background()
         car_image = pygame.transform.scale(car_image, (100,75))
-        background = pygame.image.load(background_path).convert()
         ppu = 16
         # Edges are (0,0); (self.width/ppu, 0); (0, self.height/ppu); (self.width/ppu, self.height/ppu)
-        # car = Car(0, self.height/(2*ppu))
-        car = Car(0, 0)
-        txt_attention = "Attention: "
+        # car = Car(self.width/(2*ppu), self.height/(2*ppu))
+        car = Car(0,0)
+        coin_list = CoinList()
+        coin_list.create_list()
+        txt_attention = "Attention:   "
         txt_velocity = "Velocity: "
         while not self.exit:
-            self.popupmsg("Wear headset properly")
             attention = (neuropy.attention)
-            # attention = random.random() * (100)
-            # print(attention)
             dt = self.clock.get_time() / 100
 
             # Event queue
@@ -90,33 +133,28 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.exit = True
 
-            # User input
-            # pressed = pygame.key.get_pressed()
-            # car.acceleration = ((attention - 50) / 10 )
             car.velocity.y = (attention - 50) / 10  
-            # + random.normal(loc=0, scale=5)
-            # print(car.acceleration)
-            print(car.velocity.y)
             # Logic
             car.update(dt)
-            # print(start-timer())
-            
-            if(car.position.y >= self.height):
-                car.position.y = self.height
-                # if(car.velocity.y <= 0):
-                #     car.velocity.y = 0
+            coin_list.update_list(car.position)
+            bg.update()
 
+            if(car.position.y >= -5):
+                car.position.y = -5
+            if(car.position.y <= -self.height/ppu):
+                car.position.y = -self.height/ppu
+            print("car position"+str(car.position))
+            print("coin position"+str(coin_list.get_position()))
             # Drawing
             attention_text = self.font.render(str(txt_attention + str(attention)), 1, (255,255,255))
             velocity_text = self.font.render(str(txt_velocity + str(car.velocity.y)), 1, (255,255,255))
             self.screen.fill((0, 0, 0))
             rotated = pygame.transform.rotate(car_image, car.angle)
-            rect = rotated.get_rect()
-            self.screen.blit(background, (-car.position.x * ppu - rect.width / 2, rect.height / 2))
-            self.screen.blit(rotated, (self.width/(0.3*ppu), car.position.y * ppu - self.height/(0.3*ppu)))
+            bg.render(self.screen)
+            self.screen.blit(rotated, (self.width/(0.3*ppu), -car.position.y * ppu - self.height/(0.3*ppu)))
+            coin_list.render(self.screen)
             self.screen.blit(attention_text, (self.width-190, 2))
             self.screen.blit(velocity_text, (self.width-190, 20))
-            
             pygame.display.flip()
             self.clock.tick(self.ticks)
         pygame.quit()
