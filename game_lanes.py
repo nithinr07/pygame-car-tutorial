@@ -45,6 +45,8 @@ class Car:
         self.max_velocity = 2000
         self.brake_deceleration = 10
         self.free_deceleration = 2
+        self.offset = (6 * 25) + (5 * 20)
+
 
         self.acceleration = -6.0
         self.steering = 0.0
@@ -67,11 +69,10 @@ class Coin:
         self.coin_img = pygame.image.load("coin.png")
         self.coin_img = pygame.transform.scale(self.coin_img, (25, 25))
         self.moving_speed = 2
-        self.offset = (6 * 25) + (5 * 20)
 
-    def update(self, car_position):
+    def update(self, car_position, offset):
         self.position.x -= self.moving_speed
-        if(car_position.x + self.offset >= self.position.x and car_position.x + self.offset <= self.position.x + 25 and car_position.y >= self.position.y and car_position.y <= self.position.y + 25):
+        if(car_position.x + offset >= self.position.x and car_position.x + offset <= self.position.x + 25 and car_position.y >= self.position.y and car_position.y <= self.position.y + 25):
             self.collision = True
     
     def render(self, DISPLAYSURF):
@@ -82,17 +83,25 @@ class CoinList:
     def __init__(self, num_coins=200):
         self.num_coins = num_coins
         self.coins = []
+        self.offset = 800
+        self.score = 0
 
     def get_position(self):
         return(self.coins[25].position)
+    
+    def get_score(self):
+        return(self.score)
 
     def create_list(self):
         for i in range(self.num_coins):
-            self.coins.append(Coin((i * 20), -5))
-    
-    def update_list(self, car_position):
+             self.coins.append(Coin(self.offset + (i * 20), -5))
+     
+    def update_list(self, car_position, offset):
+        self.score = 0
         for coin in self.coins:
-            coin.update(car_position)
+            coin.update(car_position, offset)
+            if(coin.collision == True):
+                self.score += 1
     
     def render(self, DISPLAYSURF):
         for coin in self.coins:
@@ -118,12 +127,12 @@ class Game:
         car_image = pygame.transform.scale(car_image, (100,75))
         ppu = 16
         # Edges are (0,0); (self.width/ppu, 0); (0, self.height/ppu); (self.width/ppu, self.height/ppu)
-        # car = Car(self.width/(2*ppu), self.height/(2*ppu))
-        car = Car(0,0)
+        car = Car(self.width/(2*ppu), self.height/(2*ppu))
         coin_list = CoinList()
         coin_list.create_list()
-        txt_attention = "Attention:   "
+        txt_attention = "Attention: "
         txt_velocity = "Velocity: "
+        txt_score = "Score: "
         while not self.exit:
             attention = (neuropy.attention)
             dt = self.clock.get_time() / 100
@@ -136,25 +145,24 @@ class Game:
             car.velocity.y = (attention - 50) / 10  
             # Logic
             car.update(dt)
-            coin_list.update_list(car.position)
+            coin_list.update_list(car.position, car.offset)
             bg.update()
 
             if(car.position.y >= -5):
                 car.position.y = -5
             if(car.position.y <= -self.height/ppu):
                 car.position.y = -self.height/ppu
-            print("car position"+str(car.position))
-            print("coin position"+str(coin_list.get_position()))
+
             # Drawing
             attention_text = self.font.render(str(txt_attention + str(attention)), 1, (255,255,255))
-            velocity_text = self.font.render(str(txt_velocity + str(car.velocity.y)), 1, (255,255,255))
+            score_text = self.font.render(str(txt_score + str(coin_list.get_score())), 1, (255,255,255))
             self.screen.fill((0, 0, 0))
             rotated = pygame.transform.rotate(car_image, car.angle)
             bg.render(self.screen)
             self.screen.blit(rotated, (self.width/(0.3*ppu), -car.position.y * ppu - self.height/(0.3*ppu)))
             coin_list.render(self.screen)
-            self.screen.blit(attention_text, (self.width-190, 2))
-            self.screen.blit(velocity_text, (self.width-190, 20))
+            self.screen.blit(attention_text, (self.width-190, self.height-50))
+            self.screen.blit(score_text, (self.width-190, self.height-32))
             pygame.display.flip()
             self.clock.tick(self.ticks)
         pygame.quit()
