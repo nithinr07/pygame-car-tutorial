@@ -9,6 +9,7 @@ import random
 import tkinter as tk
 from tkinter import ttk
 from numpy import random
+import copy
 
 class Background():
       def __init__(self):
@@ -132,7 +133,11 @@ class Game:
         txt_attention = "Attention: "
         txt_velocity = "Velocity: "
         txt_score = "Score: "
+        global_start = timer()
+        delay = 0.25
+        pos = Vector2(0.0, 0.0)
         while not self.exit:
+            print(round(timer()-global_start, 2)%delay)
             attention = (neuropy.attention)
             dt = self.clock.get_time() / 100
 
@@ -156,9 +161,12 @@ class Game:
             attention_text = self.font.render(str(txt_attention + str(attention)), 1, (255,255,255))
             score_text = self.font.render(str(txt_score + str(coin_list.get_score())), 1, (255,255,255))
             self.screen.fill((0, 0, 0))
-            rotated = pygame.transform.rotate(car_image, car.angle)
             bg.render(self.screen)
-            self.screen.blit(rotated, (self.width/(0.3*ppu), -car.position.y * ppu - self.height/(0.3*ppu)))
+            if((round(timer()-global_start, 2)%delay)==0):
+                self.screen.blit(car_image, (self.width/(0.3*ppu), -car.position.y * ppu - self.height/(0.3*ppu)))
+                pos = copy.deepcopy(car.position)
+            else:
+                self.screen.blit(car_image, (self.width/(0.3*ppu), -pos.y * ppu - self.height/(0.3*ppu)))
             coin_list.render(self.screen)
             self.screen.blit(attention_text, (self.width-190, self.height-50))
             self.screen.blit(score_text, (self.width-190, self.height-32))
