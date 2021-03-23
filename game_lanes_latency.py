@@ -134,10 +134,12 @@ class Game:
         txt_velocity = "Velocity: "
         txt_score = "Score: "
         global_start = timer()
-        delay = 0.25
+        delay = round(random.random(), 2)
+        # delay = 0.25
+        # delay = 0
         pos = Vector2(0.0, 0.0)
         while not self.exit:
-            print(round(timer()-global_start, 2)%delay)
+            print(round(timer()-global_start, 2))
             attention = (neuropy.attention)
             dt = self.clock.get_time() / 100
 
@@ -162,8 +164,11 @@ class Game:
             score_text = self.font.render(str(txt_score + str(coin_list.get_score())), 1, (255,255,255))
             self.screen.fill((0, 0, 0))
             bg.render(self.screen)
-            if((round(timer()-global_start, 2)%delay)==0):
-                self.screen.blit(car_image, (self.width/(0.3*ppu), -car.position.y * ppu - self.height/(0.3*ppu)))
+            rotated = pygame.transform.rotate(car_image, car.angle)
+            # if((round(timer()-global_start, 2)%delay)==0):
+            if(timer() - global_start >= delay):
+                global_start = timer()
+                self.screen.blit(rotated, (self.width/(0.3*ppu), -car.position.y * ppu - self.height/(0.3*ppu)))
                 pos = copy.deepcopy(car.position)
             else:
                 self.screen.blit(car_image, (self.width/(0.3*ppu), -pos.y * ppu - self.height/(0.3*ppu)))

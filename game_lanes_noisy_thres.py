@@ -132,7 +132,10 @@ class Game:
         txt_attention = "Attention: "
         txt_velocity = "Velocity: "
         txt_score = "Score: "
-        threshold = random.normal(loc=0, scale=5)
+        # threshold = random.normal(loc=0, scale=5)
+        threshold_array = [30, 40, 50, 60, 70]
+        threshold = threshold_array[random.randint(0,4)]
+        print(threshold)
         while not self.exit:
             attention = (neuropy.attention)
             dt = self.clock.get_time() / 100
@@ -142,7 +145,7 @@ class Game:
                 if event.type == pygame.QUIT:
                     self.exit = True
 
-            car.velocity.y = ((attention - 50) / 10) + threshold  
+            car.velocity.y = ((attention - threshold) / 10)  
             # Logic
             car.update(dt)
             coin_list.update_list(car.position, car.offset)
