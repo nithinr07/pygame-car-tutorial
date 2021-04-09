@@ -179,7 +179,6 @@ class Game:
             self.clock.tick(self.ticks)
         pygame.quit()
 
-
 if __name__ == '__main__':
     os.system("sudo rfcomm connect /dev/rfcomm0 C4:64:E3:E6:E3:7D 1 &")
     sleep(5)

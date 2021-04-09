@@ -4,11 +4,13 @@ from math import sin, radians, degrees, copysign
 from pygame.math import Vector2
 from timeit import default_timer as timer
 from NeuroSkyPy.NeuroSkyPy import NeuroSkyPy
+import numpy as np
 from time import sleep
 import random
 import tkinter as tk
 from tkinter import ttk
 from numpy import random
+import logging
 
 class Background():
       def __init__(self):
@@ -106,7 +108,21 @@ class CoinList:
         for coin in self.coins:
             coin.render(DISPLAYSURF)
 
+class Logger:
+    def __init__(self, filename):
+        self.filename = filename
+        logging.basicConfig(filename=filename,
+                    format='%(asctime)s %(message)s',
+                    filemode='w')
+        self.logger = logging.getLogger()
+        self.logger.setLevel(logging.INFO)
+
+    def log_message(self, message):
+        self.logger.info(message)
+
 class Game:
+    i = 0
+    threshold_array = np.random.permutation([30, 50, 70])
     def __init__(self):
         pygame.init()
         pygame.display.set_caption("Car tutorial")
@@ -117,6 +133,7 @@ class Game:
         self.clock = pygame.time.Clock()
         self.ticks = 60
         self.exit = False
+        print(Game.threshold_array)
 
     def run(self, neuropy):
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -132,11 +149,19 @@ class Game:
         txt_attention = "Attention: "
         txt_velocity = "Velocity: "
         txt_score = "Score: "
-        # threshold = random.normal(loc=0, scale=5)
-        threshold_array = [30, 40, 50, 60, 70]
-        threshold = threshold_array[random.randint(0,4)]
+        global_start = timer()
+        threshold = Game.threshold_array[Game.i]
         print(threshold)
+        logger = Logger("trial.log")
         while not self.exit:
+            if(timer() - global_start >= 10):
+                global_start = timer()
+                Game.i = Game.i + 1
+                if(Game.i == len(Game.threshold_array)): 
+                    print("exceeded")
+                    exit()
+                
+                self.run(neuropy)
             attention = (neuropy.attention)
             dt = self.clock.get_time() / 100
 
@@ -156,6 +181,10 @@ class Game:
             if(car.position.y <= -self.height/ppu):
                 car.position.y = -self.height/ppu
 
+            # Logging trial data
+            msg = str(threshold)+" "+str(attention)+" "+str(coin_list.get_score())+" "+str(car.position.y)+" "+str(car.velocity.y)
+            logger.log_message(msg)
+
             # Drawing
             attention_text = self.font.render(str(txt_attention + str(attention)), 1, (255,255,255))
             score_text = self.font.render(str(txt_score + str(coin_list.get_score())), 1, (255,255,255))
@@ -169,7 +198,6 @@ class Game:
             pygame.display.flip()
             self.clock.tick(self.ticks)
         pygame.quit()
-
 
 if __name__ == '__main__':
     os.system("sudo rfcomm connect /dev/rfcomm0 C4:64:E3:E6:E3:7D 1 &")
