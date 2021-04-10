@@ -12,11 +12,11 @@ from tkinter import ttk
 from numpy import random
 import logging
 
-def outlineit(x, y, outline, size, string, font, color, most):
+def outlineit(x, y, outline, size, string, font, color, most, screen):
 
     for i in string:
         if i == "m":
-            font = pygame.font.Font(os.path.join("Img1", "New Athletic M54.ttf"), 30)
+            font = pygame.font.Font("New Athletic M54.ttf", 30)
             x = 115
             y += 18
         if i !=" ":
@@ -177,7 +177,7 @@ class Game:
         print(threshold)
         logger = Logger("trial.log")
         while not self.exit:
-            if(timer() - global_start >= 20):
+            if(timer() - global_start >= 10):
                 global_start = timer()
                 Game.i = Game.i + 1
                 if(Game.i == len(Game.threshold_array)): 
@@ -185,11 +185,13 @@ class Game:
                     exit()
                 
                 while (timer() - global_start <= 10):
-                    PauseScreen = pygame.image.load(os.path.join("Img1", "beginScreen.jpg"))
+                    PauseScreen = pygame.image.load("beginScreen.jpg")
+                    PauseScreen = pygame.transform.scale(PauseScreen, (self.width, self.height))
                     timeRemaining = 10 - (timer() - global_start)
-                    screen.blit(PauseScreen, (0,0))
-                    outlineit(600, 200, 2, 40, "THE_GAME_RESUMES_IN", pygame.font.Font(os.path.join("Img1", "New Athletic M54.ttf"), 40), (255,140, 0), 23)
-                    outlineit(750, 300, 3, 40, timeRemaining, pygame.font.Font(os.path.join("Img1", "New Athletic M54.ttf"), 40), (255,140, 0), 23)
+                    self.screen.blit(PauseScreen, (0,0))
+                    outlineit(300, 200, 2, 20, "THE_GAME_RESUMES_IN", pygame.font.Font("New Athletic M54.ttf", 40), (255,140, 0), 23, self.screen)
+                    outlineit(400, 300, 3, 20, str(round(timeRemaining, 3)), pygame.font.Font("New Athletic M54.ttf", 40), (255,140, 0), 23, self.screen)
+                    pygame.display.flip()
 
                 self.run(neuropy)
             attention = (neuropy.attention)
