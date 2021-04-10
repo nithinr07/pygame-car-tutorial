@@ -154,13 +154,20 @@ class Game:
         print(threshold)
         logger = Logger("trial.log")
         while not self.exit:
-            if(timer() - global_start >= 10):
+            if(timer() - global_start >= 20):
                 global_start = timer()
                 Game.i = Game.i + 1
                 if(Game.i == len(Game.threshold_array)): 
                     print("exceeded")
                     exit()
                 
+                while (timer() - global_start <= 10):
+                    PauseScreen = pygame.image.load(os.path.join("Img1", "beginScreen.jpg"))
+                    timeRemaining = 10 - (timer() - global_start)
+                    screen.blit(PauseScreen, (0,0))
+                    outlineit(600, 200, 2, 40, "THE_GAME_RESUMES_IN", viewer.smallfont, (255,140, 0), 23)
+                    outlineit(750, 300, 3, 40, timeRemaining, (255,140, 0), 23)
+
                 self.run(neuropy)
             attention = (neuropy.attention)
             dt = self.clock.get_time() / 100
