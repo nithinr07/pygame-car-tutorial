@@ -12,6 +12,29 @@ from tkinter import ttk
 from numpy import random
 import logging
 
+def outlineit(x, y, outline, size, string, font, color, most):
+
+    for i in string:
+        if i == "m":
+            font = pygame.font.Font(os.path.join("Img1", "New Athletic M54.ttf"), 30)
+            x = 115
+            y += 18
+        if i !=" ":
+            insideObj = font.render(i, 1, color)
+            outsideObj = font.render(i, 1, (0, 0, 0))
+
+            screen.blit(outsideObj, (x-outline, y-outline))
+            screen.blit(outsideObj, (x-outline, y))
+            screen.blit(outsideObj, (x-outline, y+outline))
+            screen.blit(outsideObj, (x, y-outline))
+            screen.blit(outsideObj, (x, y+outline))
+            screen.blit(outsideObj, (x+outline, y-outline))
+            screen.blit(outsideObj, (x+outline, y))
+            screen.blit(outsideObj, (x+outline, y+outline))
+            screen.blit(insideObj, (x, y))
+
+            x+=most
+
 class Background():
       def __init__(self):
             self.bgimage = pygame.image.load('stars.png')
@@ -165,8 +188,8 @@ class Game:
                     PauseScreen = pygame.image.load(os.path.join("Img1", "beginScreen.jpg"))
                     timeRemaining = 10 - (timer() - global_start)
                     screen.blit(PauseScreen, (0,0))
-                    outlineit(600, 200, 2, 40, "THE_GAME_RESUMES_IN", viewer.smallfont, (255,140, 0), 23)
-                    outlineit(750, 300, 3, 40, timeRemaining, (255,140, 0), 23)
+                    outlineit(600, 200, 2, 40, "THE_GAME_RESUMES_IN", pygame.font.Font(os.path.join("Img1", "New Athletic M54.ttf"), 40), (255,140, 0), 23)
+                    outlineit(750, 300, 3, 40, timeRemaining, pygame.font.Font(os.path.join("Img1", "New Athletic M54.ttf"), 40), (255,140, 0), 23)
 
                 self.run(neuropy)
             attention = (neuropy.attention)
