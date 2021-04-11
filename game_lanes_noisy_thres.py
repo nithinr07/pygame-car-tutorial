@@ -258,8 +258,8 @@ if __name__ == '__main__':
         print("Wear Headset Properly:", neuropy.poorSignal)
 
     #pass experiment number and subject name as command line arguments
-    exp_num = sys.argv[0]
-    subject_name = sys.argv[1]
+    exp_num = sys.argv[1]
+    subject_name = sys.argv[2]
 
     game = Game(exp_num, subject_name)
     game.run(neuropy)
