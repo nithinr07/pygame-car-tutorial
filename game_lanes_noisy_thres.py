@@ -11,7 +11,7 @@ import tkinter as tk
 from tkinter import ttk
 from numpy import random
 import logging
-
+import sys
 def outlineit(x, y, outline, size, string, font, color, most, screen):
 
     for i in string:
@@ -146,7 +146,7 @@ class Logger:
 class Game:
     i = 0
     threshold_array = np.random.permutation([30, 50, 70])
-    def __init__(self):
+    def __init__(self, exp_num, subject_name):
         pygame.init()
         pygame.display.set_caption("Car tutorial")
         self.width = 800
@@ -156,6 +156,9 @@ class Game:
         self.clock = pygame.time.Clock()
         self.ticks = 60
         self.exit = False
+        self.exp_num = exp_num
+        self.subject_name = subject_name
+
         print(Game.threshold_array)
 
     def run(self, neuropy):
@@ -175,7 +178,20 @@ class Game:
         global_start = timer()
         threshold = Game.threshold_array[Game.i]
         print(threshold)
-        logger = Logger("trial.log")
+
+        data_folder = os.path.join(self.exp_num, self.subject_name)
+
+        #check if data folder exists
+        if not os.path.isdir(data_folder):
+            os.makedirs(data_folder)
+
+        #count files in directory
+        file_count = sum(len(files) for _, _, files in os.walk(data_folder))
+        trial_num = file_count + 1
+        file_path = os.path.join(data_folder, "trial_{}".format(trial_num))
+
+        logger = Logger(file_path)
+
         while not self.exit:
             if(timer() - global_start >= 10):
                 global_start = timer()
@@ -240,5 +256,10 @@ if __name__ == '__main__':
     sleep(5)
     while(neuropy.poorSignal != 0):
         print("Wear Headset Properly:", neuropy.poorSignal)
-    game = Game()
+
+    #pass experiment number and subject name as command line arguments
+    exp_num = sys.argv[0]
+    subject_name = sys.argv[1]
+
+    game = Game(exp_num, subject_name)
     game.run(neuropy)
