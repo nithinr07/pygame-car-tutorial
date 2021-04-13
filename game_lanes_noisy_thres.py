@@ -273,7 +273,7 @@ class Game:
                         input_box.draw(self.screen)
                         pygame.display.flip()
 
-                    with open(data_folder+"/trial_data.csv", "a+", newline='') as f:
+                    with open(os.path.join(data_folder, "trial_data.csv"), "a+", newline='') as f:
                         writer = csv.writer(f)
                         ground_truth = [[x] for x in Game.threshold_array]
                         for i in range(1,len(ground_truth)+1):
@@ -282,7 +282,7 @@ class Game:
                         ground_truth_trials = []
                         for i in range(len(ground_truth)):
                             ground_truth_trials.append(ground_truth[i][1])
-                        if(os.stat(data_folder+"/trial_data.csv").st_size == 0):
+                        if(os.stat(os.path.join(data_folder, "trial_data.csv")).st_size == 0):
                             writer.writerow(["Trial Number", "Threshold Array", "Coins Collected", "User Order", "Ground Truth"])
                         writer.writerow([Game.trial_num, Game.threshold_array, Game.coins_thresh, text, np.asarray(ground_truth_trials, 'int')])
                     print("exceeded")
