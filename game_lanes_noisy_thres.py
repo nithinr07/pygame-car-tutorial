@@ -1,19 +1,21 @@
 import os
 import pygame
-from math import sin, radians, degrees, copysign
+from math import sin, radians, degrees
 from pygame.math import Vector2
 from timeit import default_timer as timer
 from NeuroSkyPy.NeuroSkyPy import NeuroSkyPy
 import numpy as np
 from time import sleep
-import random
-import tkinter as tk
-from tkinter import ttk
-from numpy import random
 import logging
 import sys
-def outlineit(x, y, outline, size, string, font, color, most, screen):
+import csv
 
+pygame.init()
+COLOR_INACTIVE = pygame.Color('lightskyblue3')
+COLOR_ACTIVE = pygame.Color('dodgerblue2')
+FONT = pygame.font.Font(None, 32)
+
+def outlineit(x, y, outline, size, string, font, color, most, screen):
     for i in string:
         if i == "m":
             font = pygame.font.Font("New Athletic M54.ttf", 30)
@@ -36,29 +38,29 @@ def outlineit(x, y, outline, size, string, font, color, most, screen):
             x+=most
 
 class Background():
-      def __init__(self):
-            self.bgimage = pygame.image.load('stars.png')
-            self.rectBGimg = self.bgimage.get_rect()
- 
-            self.bgY1 = 0
-            self.bgX1 = 0
- 
-            self.bgY2 = 0
-            self.bgX2 = self.rectBGimg.width
+    def __init__(self):
+        self.bgimage = pygame.image.load('stars.png')
+        self.rectBGimg = self.bgimage.get_rect()
 
-            self.moving_speed = 2
-          
-      def update(self):
+        self.bgY1 = 0
+        self.bgX1 = 0
+
+        self.bgY2 = 0
+        self.bgX2 = self.rectBGimg.width
+
+        self.moving_speed = 2
+        
+    def update(self):
         self.bgX1 -= self.moving_speed
         self.bgX2 -= self.moving_speed
         if self.bgX1 <= -self.rectBGimg.width:
             self.bgX1 = self.rectBGimg.width
         if self.bgX2 <= -self.rectBGimg.width:
             self.bgX2 = self.rectBGimg.width
-             
-      def render(self, DISPLAYSURF):
-         DISPLAYSURF.blit(self.bgimage, (self.bgX1, self.bgY1))
-         DISPLAYSURF.blit(self.bgimage, (self.bgX2, self.bgY2))
+            
+    def render(self, DISPLAYSURF):
+        DISPLAYSURF.blit(self.bgimage, (self.bgX1, self.bgY1))
+        DISPLAYSURF.blit(self.bgimage, (self.bgX2, self.bgY2))
 class Car:
     def __init__(self, x, y, angle=0.0, length=4, max_steering=30, max_acceleration=1000.0):
         self.position = Vector2(x, y)
@@ -72,7 +74,7 @@ class Car:
         self.free_deceleration = 2
         self.offset = (6 * 25) + (5 * 20)
 
-        self.acceleration = -6.0
+        self.acceleration = -5.0
         self.steering = 0.0
 
     def update(self, dt):
@@ -135,7 +137,7 @@ class Logger:
     def __init__(self, filename):
         self.filename = filename
         logging.basicConfig(filename=filename,
-                    format='%(asctime)s %(message)s',
+                    format='%(asctime)s,%(message)s',
                     filemode='w')
         self.logger = logging.getLogger()
         self.logger.setLevel(logging.INFO)
@@ -143,10 +145,54 @@ class Logger:
     def log_message(self, message):
         self.logger.info(message)
 
+class InputBox:
+    def __init__(self, x, y, w, h, text=''):
+        self.rect = pygame.Rect(x, y, w, h)
+        self.color = COLOR_INACTIVE
+        self.text = text
+        self.txt_surface = FONT.render(text, True, self.color)
+        self.active = False
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            # If the user clicked on the input_box rect.
+            if self.rect.collidepoint(event.pos):
+                # Toggle the active variable.
+                self.active = not self.active
+            else:
+                self.active = False
+            # Change the current color of the input box.
+            self.color = COLOR_ACTIVE if self.active else COLOR_INACTIVE
+        if event.type == pygame.KEYDOWN:
+            if self.active:
+                if event.key == pygame.K_RETURN:
+                    print(self.text)
+                elif event.key == pygame.K_BACKSPACE:
+                    self.text = self.text[:-1]
+                else:
+                    self.text += event.unicode
+                # Re-render the text.
+                self.txt_surface = FONT.render(self.text, True, self.color)
+
+    def get_text(self):
+        return(self.text)
+
+    def update(self):
+        # Resize the box if the text is too long.
+        width = max(200, self.txt_surface.get_width()+10)
+        self.rect.w = width
+
+    def draw(self, screen):
+        # Blit the text.
+        screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
+        # Blit the rect.
+        pygame.draw.rect(screen, self.color, self.rect, 2)
 class Game:
     i = 0
-    threshold_array = np.random.permutation([30, 50, 70])
-    def __init__(self, exp_num, subject_name):
+    threshold_array = np.random.permutation([40, 50, 60])
+    coins_thresh = np.array([], "int")
+    trial_num = 0
+    def __init__(self, subject_name):
         pygame.init()
         pygame.display.set_caption("Car tutorial")
         self.width = 800
@@ -156,10 +202,15 @@ class Game:
         self.clock = pygame.time.Clock()
         self.ticks = 60
         self.exit = False
-        self.exp_num = exp_num
+        self.exp_num = "Noisy Threshold"
         self.subject_name = subject_name
-
-        print(Game.threshold_array)
+        #count files in directory
+        data_folder = os.path.join(self.exp_num, self.subject_name)
+        file_count = sum(len(files) for _, _, files in os.walk(data_folder))
+        Game.trial_num = file_count 
+        if(file_count > 0):
+            Game.trial_num = Game.trial_num - 1
+        # print(Game.threshold_array)
 
     def run(self, neuropy):
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -177,7 +228,7 @@ class Game:
         txt_score = "Score: "
         global_start = timer()
         threshold = Game.threshold_array[Game.i]
-        print(threshold)
+        # print(threshold)
 
         data_folder = os.path.join(self.exp_num, self.subject_name)
 
@@ -186,17 +237,54 @@ class Game:
             os.makedirs(data_folder)
 
         #count files in directory
-        file_count = sum(len(files) for _, _, files in os.walk(data_folder))
-        trial_num = file_count + 1
-        file_path = os.path.join(data_folder, "trial_{}".format(trial_num))
+        # file_count = sum(len(files) for _, _, files in os.walk(data_folder))
+        # trial_num = file_count 
+        # if(file_count > 0):
+        #     trial_num = trial_num - 1
+        file_path = os.path.join(data_folder, "trial_{}.csv".format(Game.trial_num))
 
         logger = Logger(file_path)
+        if(Game.i == 0):
+            header = "timestamp"+","+"threshold"+","+"attention"+","+"score"+","+"spaceship_position"+","+"spaceship_velocity"
+            logger.log_message(header)
 
         while not self.exit:
-            if(timer() - global_start >= 10):
+            if(timer() - global_start >= 30):
                 global_start = timer()
                 Game.i = Game.i + 1
+                Game.coins_thresh = np.append(Game.coins_thresh, coin_list.get_score())
                 if(Game.i == len(Game.threshold_array)): 
+                    disp_text = self.font.render("Enter the order of difficulty/control that you experienced (Eg : 1,2,3): ", 1, (255,255,255))
+                    input_box = InputBox((self.width/2), (self.height/2), 140, 32)
+                    done = False
+                    text = ''
+                    while not done:
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN):
+                                text = input_box.get_text()
+                                done = True
+                            input_box.handle_event(event)
+
+                        input_box.update()
+                        if(done):
+                            text = np.array(text.split(','), 'int')
+                        self.screen.fill((30, 30, 30))
+                        self.screen.blit(disp_text, ((self.width/2)-200, (self.height/2)-30))
+                        input_box.draw(self.screen)
+                        pygame.display.flip()
+
+                    with open(data_folder+"/trial_data.csv", "a+", newline='') as f:
+                        writer = csv.writer(f)
+                        ground_truth = [[x] for x in Game.threshold_array]
+                        for i in range(1,len(ground_truth)+1):
+                            ground_truth[i-1].append(i)
+                        ground_truth.sort()
+                        ground_truth_trials = []
+                        for i in range(len(ground_truth)):
+                            ground_truth_trials.append(ground_truth[i][1])
+                        if(os.stat(data_folder+"/trial_data.csv").st_size == 0):
+                            writer.writerow(["Trial Number", "Threshold Array", "Coins Collected", "User Order", "Ground Truth"])
+                        writer.writerow([Game.trial_num, Game.threshold_array, Game.coins_thresh, text, np.asarray(ground_truth_trials, 'int')])
                     print("exceeded")
                     exit()
                 
@@ -230,7 +318,7 @@ class Game:
                 car.position.y = -self.height/ppu
 
             # Logging trial data
-            msg = str(threshold)+" "+str(attention)+" "+str(coin_list.get_score())+" "+str(car.position.y)+" "+str(car.velocity.y)
+            msg = str(threshold)+","+str(attention)+","+str(coin_list.get_score())+","+str(car.position.y)+","+str(car.velocity.y)
             logger.log_message(msg)
 
             # Drawing
@@ -241,8 +329,8 @@ class Game:
             bg.render(self.screen)
             self.screen.blit(rotated, (self.width/(0.3*ppu), -car.position.y * ppu - self.height/(0.3*ppu)))
             coin_list.render(self.screen)
-            self.screen.blit(attention_text, (self.width-190, self.height-50))
-            self.screen.blit(score_text, (self.width-190, self.height-32))
+            # self.screen.blit(attention_text, (self.width-190, self.height-50))
+            # self.screen.blit(score_text, (self.width-190, self.height-32))
             pygame.display.flip()
             self.clock.tick(self.ticks)
         pygame.quit()
@@ -258,8 +346,7 @@ if __name__ == '__main__':
         print("Wear Headset Properly:", neuropy.poorSignal)
 
     #pass experiment number and subject name as command line arguments
-    exp_num = sys.argv[1]
-    subject_name = sys.argv[2]
+    subject_name = sys.argv[1]
 
-    game = Game(exp_num, subject_name)
+    game = Game(subject_name)
     game.run(neuropy)
