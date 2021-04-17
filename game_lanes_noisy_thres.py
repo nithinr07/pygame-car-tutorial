@@ -74,7 +74,7 @@ class Car:
         self.free_deceleration = 2
         self.offset = (6 * 25) + (5 * 20)
 
-        self.acceleration = -5.0
+        self.acceleration = 0.0
         self.steering = 0.0
 
     def update(self, dt):
@@ -87,6 +87,9 @@ class Car:
 
         self.position += self.velocity.rotate(-self.angle) * dt
         self.angle += degrees(angular_velocity) * dt
+    
+    def get_acc(self):
+        return(self.acceleration)
 
 class Coin:
     def __init__(self, x, y):
@@ -283,8 +286,8 @@ class Game:
                         for i in range(len(ground_truth)):
                             ground_truth_trials.append(ground_truth[i][1])
                         if(os.stat(os.path.join(data_folder, "trial_data.csv")).st_size == 0):
-                            writer.writerow(["Trial Number", "Threshold Array", "Coins Collected", "User Order", "Ground Truth"])
-                        writer.writerow([Game.trial_num, Game.threshold_array, Game.coins_thresh, text, np.asarray(ground_truth_trials, 'int')])
+                            writer.writerow(["Trial Number", "Threshold Array", "Gravity", "Coins Collected", "User Order", "Ground Truth"])
+                        writer.writerow([Game.trial_num, Game.threshold_array, car.get_acc(), Game.coins_thresh, text, np.asarray(ground_truth_trials, 'int')])
                     print("exceeded")
                     exit()
                 

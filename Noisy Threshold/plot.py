@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 def plot_graph(path):
     files = os.listdir(path)
-    thresholds = [30,50,70]
+    thresholds = [40,50,60]
     x = {}
     y = {}
     for threshold in thresholds:
@@ -12,6 +12,8 @@ def plot_graph(path):
     trial=1
     for file in files:
         print(file)
+        if(file == "trial_data.csv"):
+            continue
         for threshold in thresholds:
             x[threshold].append(trial)
             y[threshold].append(0)
@@ -41,6 +43,6 @@ def plot_graph(path):
 
                 
 if __name__ == '__main__':
-    plot_graph('Arvind/')
-    plot_graph('Ajay/')
+    plot_graph('Arjun/')
+    # plot_graph('Ajay/')
     plt.show()
