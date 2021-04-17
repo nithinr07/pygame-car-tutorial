@@ -339,9 +339,12 @@ class Game:
         pygame.quit()
 
 if __name__ == '__main__':
-    os.system("sudo rfcomm connect /dev/rfcomm0 C4:64:E3:E6:E3:7D 1 &")
+    # os.system("sudo rfcomm connect /dev/rfcomm0 C4:64:E3:E6:E3:7D 1 &")
+    com_port = "COM6"
     sleep(5)
-    neuropy = NeuroSkyPy("/dev/rfcomm0")
+    # neuropy = NeuroSkyPy("/dev/rfcomm0")
+    neuropy = NeuroSkyPy(com_port)
+
     neuropy.start()
     print("Initialising....")
     sleep(5)
